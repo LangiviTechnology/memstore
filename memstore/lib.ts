@@ -1,4 +1,15 @@
+import {
+    ensureDir,
+    existsSync
+} from "https://deno.land/std@0.129.0/fs/mod.ts";
 const libname = "./lib/libmemstore.dylib";
+if (!existsSync(libname)){
+    console.log("hello");
+    const file = await fetch("https://deno.land/x/memory_store@0.0.1/memstore/lib/libmemstore.dylib");
+    ensureDir("lib");
+    Deno.writeFile(libname, new Uint8Array(await file.arrayBuffer()));
+
+}
 const lib = Deno.dlopen(libname, {
     "add_kv": {parameters: ["pointer", "pointer", "usize"], result: "void"},
     "get_kv": {parameters: ["pointer"], result: "pointer"},
