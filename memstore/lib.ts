@@ -2,10 +2,22 @@ import {
     ensureDir,
     existsSync
 } from "https://deno.land/std@0.129.0/fs/mod.ts";
-const libname = "./lib/libmemstore.dylib";
+let libSuffix = "";
+switch (Deno.build.os) {
+    case "windows":
+        libSuffix = "dll";
+        break;
+    case "darwin":
+        libSuffix = "dylib";
+        break;
+    default:
+        libSuffix = "so";
+        break;
+}
+const libname = `./lib/libmemstore.${libSuffix}`;
 if (!existsSync(libname)){
     console.log("hello");
-    const file = await fetch("https://deno.land/x/memory_store@0.0.1/memstore/lib/libmemstore.dylib");
+    const file = await fetch(`https://deno.land/x/memory_store@0.0.1/memstore/lib/libmemstore.${libSuffix}`);
     ensureDir("lib");
     Deno.writeFile(libname, new Uint8Array(await file.arrayBuffer()));
 
