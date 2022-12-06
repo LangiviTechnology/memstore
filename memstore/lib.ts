@@ -2,7 +2,7 @@ import {
     ensureDir,
     existsSync
 } from "https://deno.land/std@0.129.0/fs/mod.ts";
-const VERSION = "0.0.3"
+const VERSION = "0.0.5"
 let libSuffix = "";
 
 function toCString(string:string):Uint8Array {
@@ -29,15 +29,15 @@ if (!existsSync(libname)){
 }
 
 const lib = Deno.dlopen(libname, {
-    "add_kv": {parameters: ["pointer", "pointer", "usize"], result: "void"},
-    "get_kv": {parameters: ["pointer"], result: "pointer"},
-    "delete_kv": {parameters: ["pointer"], result: "u8"}
+    "add_kv": {parameters: ["buffer", "buffer", "usize"], result: "void"},
+    "get_kv": {parameters: ["buffer"], result: "buffer"},
+    "delete_kv": {parameters: ["buffer"], result: "u8"}
 });
 
 export function add(name: string, value: string | Uint8Array) {
     const strVal = typeof value == "string" ? toCString(value) : value;
     const strName = toCString(name);
-    return lib.symbols.add_kv(Deno.UnsafePointer.of(strName), Deno.UnsafePointer.of(strVal), strVal.length);
+    return lib.symbols.add_kv(strName, strVal, strVal.length);
 }
 
 export function get(name: string): string | null {
@@ -49,7 +49,7 @@ export function get(name: string): string | null {
     return stringPtrview1.getCString();
 }
 
-export function getBuf(name: string): Uint8Array | null  {
+export function getBuf(name: string): Uint8Array | null {
     const strName = toCString(name);
     const value = lib.symbols.get_kv(strName);
     if (value.value == 0n)
